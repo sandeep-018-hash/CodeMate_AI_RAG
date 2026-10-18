@@ -1,0 +1,736 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1020">
+    <title>CodeMate AI | Coding Assistant</title>
+
+    <style>
+        :root {
+            --bg: #0b1020;
+            --sidebar: #0e1527;
+            --panel: #131d32;
+            --border: #26334b;
+            --text: #e8edf7;
+            --muted: #96a4bd;
+            --accent: #67e8f9;
+            --accent-dark: #082f49;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            padding: 28px 18px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 38px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 43px;
+            height: 43px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #67e8f9, #818cf8);
+            color: #0b1020;
+            font-size: 21px;
+            font-weight: 900;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .new-chat {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #3c506e;
+            border-radius: 11px;
+            background: #17243a;
+            color: var(--text);
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .new-chat:hover {
+            border-color: var(--accent);
+            background: #1b2a43;
+        }
+
+        .sidebar-label {
+            margin: 30px 0 12px;
+            color: #72829d;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .side-item {
+            padding: 11px 10px;
+            border-radius: 9px;
+            color: #bdc8db;
+            font-size: 14px;
+        }
+
+        .side-item.active {
+            background: #19263d;
+            color: var(--accent);
+        }
+
+        .sidebar-footer {
+            margin-top: 42px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .status {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+        }
+
+        /* Main workspace */
+        .workspace {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 5%;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .model-label {
+            padding: 7px 11px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: #b9c6da;
+            font-size: 12px;
+        }
+
+        .main-content {
+            width: min(850px, 90%);
+            margin: 0 auto;
+            padding: 54px 0 36px;
+            flex: 1;
+        }
+
+        .welcome {
+            margin-bottom: 34px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .welcome h2 {
+            margin: 13px 0 12px;
+            font-size: clamp(28px, 4vw, 42px);
+            letter-spacing: -1.5px;
+            line-height: 1.15;
+        }
+
+        .welcome h2 span {
+            color: var(--accent);
+        }
+
+        .welcome p {
+            max-width: 580px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .section-label {
+            margin: 0 0 13px;
+            color: #b4c0d4;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .suggestion {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: #10192b;
+            color: var(--text);
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .suggestion:hover {
+            border-color: #528aab;
+            transform: translateY(-2px);
+        }
+
+        .suggestion strong {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+        }
+
+        .suggestion span {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* Question form */
+        .composer {
+            padding: 15px;
+            border: 1px solid #35435d;
+            border-radius: 17px;
+            background: #121c30;
+            box-shadow: 0 15px 45px #00000020;
+        }
+
+        .composer:focus-within {
+            border-color: #438ca5;
+        }
+
+        .composer label {
+            display: block;
+            margin: 0 0 10px 3px;
+            color: #aab8ce;
+            font-size: 12px;
+        }
+
+        textarea {
+            display: block;
+            width: 100%;
+            min-height: 100px;
+            padding: 10px 4px;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        textarea::placeholder {
+            color: #687993;
+        }
+
+        .composer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .helper {
+            color: #8190a9;
+            font-size: 11px;
+        }
+
+        .submit-btn {
+            padding: 11px 17px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: var(--accent-dark);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #a5f3fc;
+        }
+
+        /* Answer */
+        .answer {
+            margin-top: 28px;
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: #10192b;
+        }
+
+        .answer-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .answer-icon {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #153444;
+            color: var(--accent);
+        }
+
+        .answer h3 {
+            margin: 0;
+            font-size: 15px;
+        }
+
+       
+.answer pre {
+    margin: 0;
+    padding: 18px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: #d5deee;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.answer pre code {
+    display: block;
+    padding: 16px;
+    border: 1px solid #2c3b55;
+    border-radius: 10px;
+    background: #0b1020;
+    font-family: Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre;
+}
+
+        .footer-note {
+            margin-top: 22px;
+            color: #71809a;
+            font-size: 11px;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 15px 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .brand {
+                margin-bottom: 0;
+            }
+
+            .new-chat,
+            .sidebar-label,
+            .side-item,
+            .sidebar-footer {
+                display: none;
+            }
+
+            .topbar {
+                padding: 15px 20px;
+            }
+
+            .main-content {
+                width: min(100% - 32px, 650px);
+                padding-top: 34px;
+            }
+
+            .suggestions {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome h2 {
+                letter-spacing: -0.8px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+            }
+        }
+    </style>
+    
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">&lt;/&gt;</div>
+            <div>
+                <h1>CodeMate AI</h1>
+                <p>Your coding companion</p>
+            </div>
+        </div>
+
+        <button class="new-chat" type="button"
+                onclick="document.getElementById('question').value=''; document.getElementById('question').focus();">
+            + &nbsp; New question
+        </button>
+
+        <div class="sidebar-label">Workspace</div>
+        <div class="side-item active">⌘ &nbsp; Python assistant</div>
+        <div class="side-item">▤ &nbsp; Knowledge base</div>
+
+        <div class="sidebar-footer">
+            <div><span class="status"></span> Local AI workspace</div>
+            <div>Powered by your RAG knowledge base and Ollama model.</div>
+        </div>
+    </aside>
+
+    <div class="workspace">
+        <header class="topbar">
+            <h2>Python Assistant</h2>
+            <div class="model-label">✦ &nbsp; Qwen2.5-Coder</div>
+        </header>
+
+        <main class="main-content">
+            <section class="welcome">
+                <div class="eyebrow">Your AI coding workspace</div>
+                <h2>Build something<br><span>great with Python.</span></h2>
+                <p>
+                    Ask questions, understand programming concepts, and get
+                    help with your code. CodeMate AI uses your knowledge base
+                    and local AI model to help you learn.
+                </p>
+            </section>
+
+            <section>
+                <h3 class="section-label">Try asking about</h3>
+
+                <div class="suggestions">
+                    <button class="suggestion" type="button"
+                            onclick="askQuestion('Explain Python functions with a simple example.')">
+                        <strong>↗ &nbsp; Python functions</strong>
+                        <span>Learn how to create and call a function.</span>
+                    </button>
+
+                    <button class="suggestion" type="button"
+                            onclick="askQuestion('How do I handle invalid input in Python?')">
+                        <strong>⌁ &nbsp; Debugging and errors</strong>
+                        <span>Understand exceptions and safe input.</span>
+                    </button>
+
+                    <button class="suggestion" type="button"
+                            onclick="askQuestion('Explain Python loops with examples.')">
+                        <strong>⟳ &nbsp; Loops and iteration</strong>
+                        <span>Explore for loops and while loops.</span>
+                    </button>
+
+                    <button class="suggestion" type="button"
+                            onclick="askQuestion('Explain Python lists and dictionaries.')">
+                        <strong>▦ &nbsp; Python data structures</strong>
+                        <span>Work with lists and dictionaries.</span>
+                    </button>
+                </div>
+            </section>
+
+            <form method="POST" class="composer">
+                <label for="question">YOUR QUESTION</label>
+
+                <textarea
+                    id="question"
+                    name="question"
+                    placeholder="Ask CodeMate anything about Python..."
+                    required
+                >{{ question }}</textarea>
+
+                <div class="composer-bottom">
+                    <span class="helper">Enter your question below</span>
+                    <button class="submit-btn" type="submit">
+                        Ask CodeMate &nbsp; ↑
+                    </button>
+                </div>
+            </form>
+
+            {% if answer %}
+            <section class="answer" aria-live="polite">
+                <div class="answer-heading">
+                    <div class="answer-icon">✦</div>
+                    <h3>CodeMate AI's Answer</h3>
+                </div>
+<div class="answer-content" id="answerContent">{{ answer }}
+
+</div>            </section>
+            {% endif %}
+
+            <div class="footer-note">
+                CodeMate AI can make mistakes. Review generated code before
+                running it.<br>
+                Your local model runs on your computer.
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    function askQuestion(text) {
+        const questionBox = document.getElementById("question");
+        questionBox.value = text;
+        questionBox.focus();
+        questionBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+</script>
+
+<script>
+    
+
+function formatAnswer() {
+    const container = document.getElementById("answerContent");
+    if (!container) return;
+
+    // Read the original answer before replacing its contents.
+    const raw = container.textContent.trim();
+    container.replaceChildren();
+
+    // Split text into code and non-code sections.
+    const lines = raw.split(/\r?\n/);
+    let textLines = [];
+    let codeLines = [];
+    let insideCode = false;
+
+    function addInlineText(parent, text) {
+        const parts = text.split(/(`[^`]+`)/g);
+
+        for (const part of parts) {
+            if (part.startsWith("`") && part.endsWith("`")) {
+                const code = document.createElement("code");
+                code.className = "inline-code";
+                code.textContent = part.slice(1, -1);
+                parent.appendChild(code);
+            } else {
+                parent.appendChild(document.createTextNode(part));
+            }
+        }
+    }
+
+    function flushText() {
+        if (!textLines.length) return;
+
+        const block = textLines.join("\n").trim();
+        textLines = [];
+        if (!block) return;
+
+        for (const line of block.split("\n")) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+
+            const heading = trimmed.match(/^#{1,6}\s+(.+)$/);
+            if (heading) {
+                const h = document.createElement("h3");
+                h.className = "answer-subheading";
+                addInlineText(h, heading[1]);
+                container.appendChild(h);
+                continue;
+            }
+
+            const bullet = trimmed.match(/^[-*+]\s+(.+)$/);
+            const numbered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+
+            if (bullet || numbered) {
+                const item = document.createElement("p");
+                item.className = "answer-list-item";
+                item.textContent = "• " + (bullet ? bullet[1] : numbered[1]);
+                container.appendChild(item);
+                continue;
+            }
+
+            const p = document.createElement("p");
+            addInlineText(p, trimmed);
+            container.appendChild(p);
+        }
+    }
+
+    function addCode() {
+        const codeText = codeLines.join("\n").replace(/^\n+|\n+$/g, "");
+        codeLines = [];
+        if (!codeText) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "code-wrapper";
+
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        code.className = "language-python";
+        code.textContent = codeText;
+        pre.appendChild(code);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "submit-btn copy-code";
+        button.textContent = "Copy code";
+
+        button.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(codeText);
+                button.textContent = "Copied!";
+            } catch {
+                button.textContent = "Copy unavailable";
+            }
+        });
+
+        
+wrapper.appendChild(button);
+
+// Create the Run Code button.
+const runButton = document.createElement("button");
+runButton.type = "button";
+runButton.className = "submit-btn";
+runButton.textContent = "Run Code";
+
+// Create an area to display the program output.
+const output = document.createElement("pre");
+output.className = "code-output";
+output.style.display = "none";
+
+runButton.addEventListener("click", async () => {
+    runButton.disabled = true;
+    runButton.textContent = "Running...";
+    output.style.display = "block";
+    output.textContent = "Running your Python code...";
+
+    try {
+        const response = await fetch("/run-code", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({ code: codeText })
+        });
+
+        const result = await response.json();
+        output.textContent = result.output || "No output returned.";
+    } catch (error) {
+        output.textContent =
+            "Could not run the code. Check the Flask terminal.";
+    } finally {
+        runButton.disabled = false;
+        runButton.textContent = "Run Code";
+    }
+});
+
+wrapper.appendChild(runButton);
+wrapper.appendChild(output);
+container.appendChild(wrapper);
+
+
+        if (window.hljs) {
+            hljs.highlightElement(code);
+        }
+    }
+
+    for (const line of lines) {
+        // Recognize triple backticks, optionally followed by a language.
+        if (/^\s*```/.test(line)) {
+            if (!insideCode) {
+                flushText();
+                insideCode = true;
+                codeLines = [];
+            } else {
+                addCode();
+                insideCode = false;
+            }
+            continue;
+        }
+
+        if (insideCode) {
+            codeLines.push(line);
+        } else {
+            textLines.push(line);
+        }
+    }
+
+    // Handle answers that end without a closing code fence.
+    if (insideCode) {
+        addCode();
+    }
+
+    flushText();
+}
+formatAnswer();
+
+</script>
+
+</body>
+</html>
